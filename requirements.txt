@@ -1,0 +1,5 @@
+discord.py
+urllib3
+python-dotenv
+wordcloud
+markovify

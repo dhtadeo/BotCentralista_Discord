@@ -1,0 +1,6 @@
+logs/chat_log.txt
+logs/chat_log_prop.txt
+.env
+logs/server/
+**/__pycache__/
+*.pyc
