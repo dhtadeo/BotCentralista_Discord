@@ -52,30 +52,16 @@ class MessageLogger(commands.Cog):
         if message.author == self.bot.user:
             return
         
-        # Escribir en archivos de log
         try:
-            self.log_writer.write_basic_log(message)
-            self.log_writer.write_detailed_log(message)
-            self.log_writer.write_channel_log(message)
+            self.log_writer.write_json_log(message)
         except Exception as e:
-            print(f"❌ Error al escribir logs: {e}")
-
-        '''if message.guild:
-            print(f"\n📨 [Servidor] {message.guild.name} | Canal: #{message.channel.id}")
-            print(f"🔗 https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}")
-        else:
-            print(f"\n📨 [Mensaje Directo]")
-        
-        print(f"👤 {message.author} (ID: {message.author.id})")
-        print(f"📝 Contenido: {message.content}")'''
-
-        # Enviar logs al canal de Discord
+            print(f"❌ Error al escribir log JSON: {e}")
+            
         try:
             await self.send_to_log_channel(message, is_dm=not message.guild)
         except Exception as e:
             print(f"❌ Error sending log: {e}")
 
-        # Filtros adicionales
         if message.author.bot or message.content.startswith('.bc'):
             return
 

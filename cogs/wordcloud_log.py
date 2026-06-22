@@ -4,29 +4,32 @@ from discord.ext import commands
 from wordcloud import WordCloud
 from io import BytesIO
 import os
+import json
 
 class WordCloudLog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @app_commands.command(name="wordcloud-log", description="Generates a WordCloud from the log history file.")
+    @app_commands.command(name="wordcloud-log", description="Generates a WordCloud from the global JSON log.")
     async def wordcloud_log(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
         cog_dir = os.path.dirname(os.path.abspath(__file__))
         root_dir = os.path.dirname(cog_dir)
-        log_path = os.path.join(root_dir, "logs", "chat_log.txt")
+        log_path = os.path.join(root_dir, "logs", "chat_log.json")
 
         try:
             with open(log_path, "r", encoding="utf-8") as f:
-                texto = f.read()
+                data = json.load(f)
+            mensajes = [msg["content"] for msg in data if msg.get("content")]
+            texto = "\n".join(mensajes)
         except FileNotFoundError:
-            await interaction.followup.send(f"❌ `chat_log.txt` no encontrado en {log_path}")
-            return
+            return await interaction.followup.send(f"❌ `chat_log.json` no encontrado en {log_path}")
+        except Exception as e:
+            return await interaction.followup.send(f"❌ Error reading JSON: {e}")
 
         if not texto.strip():
-            await interaction.followup.send("❌ There's not enough text in the log file to generate the WordCloud.")
-            return
+            return await interaction.followup.send("❌ There's not enough text in the log file to generate the WordCloud.")
 
         try:
             wc = WordCloud(width=800, height=400, background_color="white").generate(texto)
@@ -35,7 +38,7 @@ class WordCloudLog(commands.Cog):
             buffer.seek(0)
 
             await interaction.followup.send(
-                content="WordCloud generated from log file.",
+                content="WordCloud generated from global JSON log.",
                 file=discord.File(buffer, filename="wordcloud_log.png")
             )
         except Exception as e:

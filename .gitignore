@@ -1,5 +1,6 @@
 logs/chat_log.txt
 logs/chat_log_prop.txt
+logs/chat_log.json
 .env
 logs/server/
 **/__pycache__/

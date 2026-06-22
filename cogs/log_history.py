@@ -3,58 +3,63 @@ from discord import app_commands
 from discord.ext import commands
 import random
 import os
+import json
 
 class LogHistory(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         cog_dir = os.path.dirname(os.path.abspath(__file__))
         root_dir = os.path.dirname(cog_dir)
-        self.log_file = os.path.join(root_dir, "logs", "chat_log.txt")
-        
-    def _read_log_lines(self):
-        """Lee el archivo de log y devuelve las líneas"""
-        if not os.path.exists(self.log_file):
-            print(f"⚠️ Archivo no encontrado en: {self.log_file}")
-            return []
-        
-        with open(self.log_file, 'r', encoding='utf-8') as f:
-            lines = [line.strip() for line in f.readlines() if line.strip()]
-        
-        if lines and "===" in lines[0]:
-            lines = lines[1:]
-        return lines
+        self.log_file = os.path.join(root_dir, "logs", "chat_log.json")
 
     @app_commands.command(
         name="log-history",
-        description="Shows up a magical random message!"
+        description="Shows up a magical random message from the JSON vault!"
     )
     @app_commands.describe(
         value="Message ID to show (leave empty to show a random one!)"
     )
     async def log_history(self, interaction: discord.Interaction, value: int = None):
-        lines = self._read_log_lines()
-        total_lines = len(lines)
+        if not os.path.exists(self.log_file):
+            return await interaction.response.send_message("⚠️ Archivo `chat_log.json` no encontrado.", ephemeral=True)
+            
+        try:
+            with open(self.log_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except Exception as e:
+            return await interaction.response.send_message(f"❌ Error leyendo el JSON: {e}", ephemeral=True)
+            
+        total_lines = len(data)
         
-        if not lines:
-            await interaction.response.send_message(
-                "⚠️ There are no registered messages yet, weird.",
-                ephemeral=True
-            )
-            return
+        if total_lines == 0:
+            return await interaction.response.send_message("⚠️ No hay mensajes registrados.", ephemeral=True)
         
         if value is not None:
-            if value <= 0:
-                await interaction.response.send_message("❌ Value must be greater than 0.", ephemeral=True)
-                return
-            if value > total_lines:
-                await interaction.response.send_message(f"❌ Value must be in between 1 and {total_lines}.", ephemeral=True)
-                return
-            selected_line = lines[value - 1]
+            if value <= 0 or value > total_lines:
+                return await interaction.response.send_message(f"❌ Value must be in between 1 and {total_lines}.", ephemeral=True)
+            selected_msg = data[value - 1]
         else:
-            selected_line = random.choice(lines)
-            value = lines.index(selected_line) + 1
+            selected_msg = random.choice(data)
+            value = data.index(selected_msg) + 1
         
-        await interaction.response.send_message(f"{selected_line}")
+        server_txt = f"Servidor ID: {selected_msg.get('server_id')}" if selected_msg.get('server_id') else "Mensaje Directo"
+        
+        adjuntos_lista = selected_msg.get('attachments', [])
+        adjuntos = "\n📎 " + "\n📎 ".join(adjuntos_lista) if adjuntos_lista else ""
+        
+        timestamp = selected_msg.get('timestamp', 'Desconocido')
+        channel_id = selected_msg.get('channel_id', 'Desconocido')
+        user_id = selected_msg.get('user_id', 'Desconocido')
+        content = selected_msg.get('content', '*Sin contenido de texto*')
+
+        formato = (
+            f"**Mensaje #{value}** | 📅 `{timestamp}`\n"
+            f"🌐 {server_txt} | 💬 <#{channel_id}>\n"
+            f"👤 <@{user_id}>: {content}"
+            f"{adjuntos}"
+        )
+        
+        await interaction.response.send_message(formato)
 
 async def setup(bot):
     await bot.add_cog(LogHistory(bot))
