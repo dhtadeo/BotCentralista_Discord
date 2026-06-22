@@ -3,5 +3,14 @@
         511265342253826060,
         333107675682308097,
         398886872455315469
+    ],
+    "exception_channel": [
+        1174602784541245490
+    ],
+    "ignored_texts": [
+        "A new level has just been rated on Geometry Dash!!!",
+        "There is a new Weekly demon on Geometry Dash!!!",
+        "There is a new Daily level on Geometry Dash!!!",
+        "bc."
     ]
 }

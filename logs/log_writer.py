@@ -1,5 +1,5 @@
-# logs/log_writer.py
 import os
+import json
 from datetime import datetime
 
 class LogWriter:
@@ -8,14 +8,12 @@ class LogWriter:
         self.basic_log = os.path.join(self.logs_dir, "chat_log.txt")
         self.detailed_log = os.path.join(self.logs_dir, "chat_log_prop.txt")
         self.server_logs_dir = os.path.join(self.logs_dir, "server")
-        self.ignored_texts = [
-            "A new level has just been rated on Geometry Dash!!!",
-            "There is a new Weekly demon on Geometry Dash!!!",
-            "There is a new Daily level on Geometry Dash!!!",
-            "bc."
-        ]
         
-        # Crear archivos si no existen
+        self.root_dir = os.path.dirname(self.logs_dir)
+        self.config_path = os.path.join(self.root_dir, "config.json")
+        
+        self.ignored_texts = self._load_ignored_texts()
+        
         if not os.path.exists(self.basic_log):
             with open(self.basic_log, 'w', encoding='utf-8') as f:
                 f.write(f"=== Log iniciado el {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ===\n")
@@ -26,6 +24,15 @@ class LogWriter:
 
         if not os.path.exists(self.server_logs_dir):
             os.makedirs(self.server_logs_dir)
+
+    def _load_ignored_texts(self):
+        try:
+            with open(self.config_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("ignored_texts", [])
+        except Exception as e:
+            print(f"⚠️ Error al cargar 'ignored_texts' desde config.json: {e}")
+            return []
 
     def _should_ignore(self, content):
         if not content:
