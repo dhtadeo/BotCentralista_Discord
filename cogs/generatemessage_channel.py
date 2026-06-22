@@ -2,8 +2,6 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import markovify
-import os
-import json
 
 class GenerateMessageChannel(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -17,23 +15,31 @@ class GenerateMessageChannel(commands.Cog):
     async def generate_message_channel(self, interaction: discord.Interaction, channel: discord.TextChannel):
         await interaction.response.defer()
 
-        cog_dir = os.path.dirname(os.path.abspath(__file__))
-        root_dir = os.path.dirname(cog_dir)
-        log_path = os.path.join(root_dir, "logs", "chat_log.json")
+        # Consumimos la RAM global en vez de abrir el archivo del disco
+        data = getattr(self.bot, 'global_chat_data', [])
+        
+        if not data:
+            return await interaction.followup.send("⚠️ Failed to generate a message.")
 
         try:
-            if not os.path.exists(log_path):
-                return await interaction.followup.send("❌ `chat_log.json` not found yet.")
-
-            with open(log_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                
-            mensajes = [msg["content"] for msg in data if msg.get("channel_id") == channel.id and msg.get("content")]
+            mensajes = []
+            for msg in data:
+                if msg.get("channel_id") == channel.id:
+                    texto_msg = msg.get("content", "").strip()
+                    adjuntos = msg.get("attachments", [])
+                    
+                    if texto_msg or adjuntos:
+                        linea = texto_msg
+                        if adjuntos:
+                            linea += " " + " ".join(adjuntos)
+                        mensajes.append(linea.strip())
+                        
             texto = "\n".join(mensajes)
                 
             if not texto.strip() or len(texto.splitlines()) < 5:
                 return await interaction.followup.send(f"❌ Not enough messages logged for {channel.mention} yet.")
 
+            # Entrenamos al instante el mini-modelo
             modelo = markovify.NewlineText(texto, well_formed=False)
             
             oracion = None
@@ -42,7 +48,7 @@ class GenerateMessageChannel(commands.Cog):
                 if oracion: break
 
             if oracion:
-                await interaction.followup.send(f"{oracion}")
+                await interaction.followup.send(oracion)
             else:
                 await interaction.followup.send("⚠️ Couldn't generate a message after many tries...")
 
