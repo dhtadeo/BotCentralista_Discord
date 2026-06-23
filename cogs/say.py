@@ -19,7 +19,7 @@ class Say_Command(commands.Cog):
                 data = json.load(f)
                 return set(data.get("authorized_users", []))
         except (FileNotFoundError, json.JSONDecodeError):
-            print("⚠️ `config.json` not found.")
+            print("> ⚠️ Config files not found.")
             return set()
 
     async def get_webhook(self, channel):
@@ -38,14 +38,14 @@ class Say_Command(commands.Cog):
     async def say(self, interaction: discord.Interaction, say_something: str = None, impersonate: discord.Member = None, attachment: discord.Attachment = None):
         
         if not say_something and not attachment:
-            await interaction.response.send_message("❌ There should be at least content in `say_something` or `attachment` to send the message.", ephemeral=True)
+            await interaction.response.send_message("> ❌ There should be at least content in `say_something` or `attachment` to send the message.", ephemeral=True)
             return
 
         if impersonate and interaction.user.id not in self.authorized_users:
-            await interaction.response.send_message("❌ `impersonate` is currently disabled, will be enabled for use in a future update.", ephemeral=True)
+            await interaction.response.send_message("> ❌ `impersonate` is currently disabled, will be enabled for use in a future update.", ephemeral=True)
             return
         
-        await interaction.response.send_message("⚠️ Maybe the message was sent or not, wait for something to happen.", ephemeral=True)
+        await interaction.response.send_message("> ✅ The message was sent but check if it really got sent.", ephemeral=True)
 
         file_to_send = await attachment.to_file() if attachment else None
 
@@ -69,9 +69,9 @@ class Say_Command(commands.Cog):
                 await webhook.send(**kwargs)
                 
             except discord.Forbidden:
-                await interaction.followup.send("❌ **Manage Webhooks** permission required.", ephemeral=True)
+                await interaction.followup.send("> ❌ **Manage Webhooks** permission required.", ephemeral=True)
             except Exception as e:
-                await interaction.followup.send(f"❌ Error sending Webhook: {e}", ephemeral=True)
+                await interaction.followup.send(f"> ❌ Error sending Webhook: `{e}`", ephemeral=True)
         else:
             await interaction.channel.send(**kwargs)
 

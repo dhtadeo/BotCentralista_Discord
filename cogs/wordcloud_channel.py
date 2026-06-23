@@ -26,11 +26,11 @@ class WordCloudChannel(commands.Cog):
                     mensajes.append(msg.content)
             texto = "\n".join(mensajes)
         except Exception as e:
-            await interaction.followup.send(f"❌ Error reading messages from the channel: {e}")
+            await interaction.followup.send(f"> ❌ Error reading messages from the channel: `{e}`")
             return
 
         if not texto.strip():
-            await interaction.followup.send("❌ Not enough text in the channel to generate the WordCloud.")
+            await interaction.followup.send("> ❌ Not enough text in the channel to generate the WordCloud.")
             return
 
         try:
@@ -40,11 +40,11 @@ class WordCloudChannel(commands.Cog):
             buffer.seek(0)
 
             await interaction.followup.send(
-                content=f"WordCloud generated from channel: {channel.mention}",
+                content=f"> WordCloud generated from channel: {channel.mention}",
                 file=discord.File(buffer, filename="wordcloud_channel.png")
             )
         except Exception as e:
-            await interaction.followup.send(f"❌ Error generating WordCloud: {e}")
+            await interaction.followup.send(f"> ❌ Error generating WordCloud: `{e}`")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(WordCloudChannel(bot))

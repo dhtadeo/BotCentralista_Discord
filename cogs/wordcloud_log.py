@@ -10,7 +10,7 @@ class WordCloudLog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @app_commands.command(name="wordcloud-log", description="Generates a WordCloud from the global JSON log.")
+    @app_commands.command(name="wordcloud-log", description="Generates a WordCloud using logs and some magic.")
     async def wordcloud_log(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
@@ -24,12 +24,12 @@ class WordCloudLog(commands.Cog):
             mensajes = [msg["content"] for msg in data if msg.get("content")]
             texto = "\n".join(mensajes)
         except FileNotFoundError:
-            return await interaction.followup.send(f"❌ `chat_log.json` no encontrado en {log_path}")
+            return await interaction.followup.send("> ⚠️ Log files not found on the system. This is not your fault, it's the developer's fault!", ephemeral=True)
         except Exception as e:
-            return await interaction.followup.send(f"❌ Error reading JSON: {e}")
+            return await interaction.followup.send(f"> ❌ Error reading log files: `{e}`")
 
         if not texto.strip():
-            return await interaction.followup.send("❌ There's not enough text in the log file to generate the WordCloud.")
+            return await interaction.followup.send("> ❌ There's not enough text in the logs to generate the WordCloud.")
 
         try:
             wc = WordCloud(width=800, height=400, background_color="white").generate(texto)
@@ -38,11 +38,11 @@ class WordCloudLog(commands.Cog):
             buffer.seek(0)
 
             await interaction.followup.send(
-                content="WordCloud generated from global JSON log.",
+                content="> WordCloud generated from log files.",
                 file=discord.File(buffer, filename="wordcloud_log.png")
             )
         except Exception as e:
-            await interaction.followup.send(f"❌ Error generating WordCloud: {e}")
+            await interaction.followup.send(f"> ❌ Error generating WordCloud: `{e}`")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(WordCloudLog(bot))

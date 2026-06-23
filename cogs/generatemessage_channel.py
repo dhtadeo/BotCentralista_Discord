@@ -8,18 +8,17 @@ class GenerateMessageChannel(commands.Cog):
         self.bot = bot
 
     @app_commands.command(
-        name="gen-message-channel", 
-        description="Generates a message based on messages sent in the selected channel."
+        name="generate-message-channel", 
+        description="Generates a coherent message based on messages sent in the selected channel."
     )
     @app_commands.describe(channel="The text channel to fetch messages from")
     async def generate_message_channel(self, interaction: discord.Interaction, channel: discord.TextChannel):
         await interaction.response.defer()
 
-        # Consumimos la RAM global en vez de abrir el archivo del disco
         data = getattr(self.bot, 'global_chat_data', [])
         
         if not data:
-            return await interaction.followup.send("⚠️ Failed to generate a message.")
+            return await interaction.followup.send("> ⚠️ Failed to generate a message.")
 
         try:
             mensajes = []
@@ -37,9 +36,8 @@ class GenerateMessageChannel(commands.Cog):
             texto = "\n".join(mensajes)
                 
             if not texto.strip() or len(texto.splitlines()) < 5:
-                return await interaction.followup.send(f"❌ Not enough messages logged for {channel.mention} yet.")
+                return await interaction.followup.send(f"> ❌ Not enough messages stored for {channel.mention} yet. Lock in! ")
 
-            # Entrenamos al instante el mini-modelo
             modelo = markovify.NewlineText(texto, well_formed=False)
             
             oracion = None
@@ -50,10 +48,10 @@ class GenerateMessageChannel(commands.Cog):
             if oracion:
                 await interaction.followup.send(oracion)
             else:
-                await interaction.followup.send("⚠️ Couldn't generate a message after many tries...")
+                await interaction.followup.send("> ⚠️ Couldn't generate a message after many tries...")
 
         except Exception as e:
-            await interaction.followup.send(f"❌ Error: {e}")
+            await interaction.followup.send(f"> ❌ Error: `{e}`")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(GenerateMessageChannel(bot))

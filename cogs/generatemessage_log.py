@@ -6,13 +6,12 @@ class GenerateMessageLog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @app_commands.command(name="gen-message-log", description="Generates a message using the global JSON brain.")
+    @app_commands.command(name="generate-message-log", description="Generates a random coherent message using logs and some magic.")
     async def generate_message_log(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        # Si el DataCore todavía no carga
         if getattr(self.bot, 'global_markov_model', None) is None:
-            return await interaction.followup.send("⚠️ Bot core is starting, pleass try again in a few moments.")
+            return await interaction.followup.send("> ⚠️ Interaction failed, please try again in a few moments.")
 
         try:
             oracion = None
@@ -25,7 +24,7 @@ class GenerateMessageLog(commands.Cog):
             else:
                 await interaction.followup.send("⚠️ Couldn't generate a coherent message after multiple tries.")
         except Exception as e:
-            await interaction.followup.send(f"❌ Error generating message: {e}")
+            await interaction.followup.send(f"> ❌ Error generating message: `{e}`")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -62,7 +61,7 @@ class GenerateMessageLog(commands.Cog):
                     mentions_config = discord.AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
                     await message.reply(oracion, allowed_mentions=mentions_config)
             except Exception as e:
-                print(f"❌ Error auto-responder: {e}")
+                print(f"[Autoreply] ❌ Autoreply error: {e}")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(GenerateMessageLog(bot))

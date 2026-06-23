@@ -17,14 +17,14 @@ class Client(commands.Bot):
         for filename in os.listdir(cogs_path):
             if filename.endswith('.py') and not filename.startswith('_'):
                 await self.load_extension(f"cogs.{filename[:-3]}")
-                print(f"{filename} loaded.")
+                print(f"[Commands] 🧮 {filename} loaded.")
 
     async def on_ready(self):
-        print(f"- Logged as: {self.user.name}")
+        print(f"[Bot] 🤖 Logged as: {self.user.name}")
         synced = await self.tree.sync()
-        print(f"- {str(len(synced))} commands synced.")
-        print(f"- Connected to {len(self.guilds)} servers:")
-        print(f"- {[guild.name for guild in self.guilds]}")
+        print(f"[Commands] 🧮 {str(len(synced))} commands synced.")
+        print(f"[Bot] 🤖 Connected to {len(self.guilds)} servers:")
+        print(f"[Bot] 🤖 {[guild.name for guild in self.guilds]}")
 
         activity = discord.Game(name="Empanada de Pino", type=3)
         await client.change_presence(status=discord.Status.dnd, activity=activity)

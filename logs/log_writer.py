@@ -21,7 +21,7 @@ class LogWriter:
                 data = json.load(f)
                 return data.get("ignored_texts", [])
         except Exception as e:
-            print(f"⚠️ Error al cargar 'ignored_texts': {e}")
+            print(f"[LogWriter] ⚠️ Error loading 'ignored_texts': {e}")
             return []
 
     def _should_ignore(self, content):
@@ -60,4 +60,4 @@ class LogWriter:
                 json.dump(data, f, ensure_ascii=False, indent=4)
                 f.truncate()
         except Exception as e:
-            print(f"❌ Error al escribir en chat_log.json: {e}")
+            print(f"[LogWriter] ❌ Error writing in JSON file: {e}")

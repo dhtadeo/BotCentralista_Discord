@@ -17,7 +17,7 @@ class MessageLogger(commands.Cog):
     async def send_to_log_channel(self, message, is_dm=False):
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel is None:
-            print("❌ Log channel not found.")
+            print("[Logger] ❌ Log channel not found.")
             return
 
         embed = discord.Embed(
@@ -55,12 +55,12 @@ class MessageLogger(commands.Cog):
         try:
             self.log_writer.write_json_log(message)
         except Exception as e:
-            print(f"❌ Error al escribir log JSON: {e}")
+            print(f"[Logger] ❌ Error al writing JSON file: {e}")
             
         try:
             await self.send_to_log_channel(message, is_dm=not message.guild)
         except Exception as e:
-            print(f"❌ Error sending log: {e}")
+            print(f"[Logger] ❌ Error sending log: {e}")
 
         if message.author.bot or message.content.startswith('.bc'):
             return

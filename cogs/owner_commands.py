@@ -21,14 +21,14 @@ class OwnerCommands(commands.Cog):
                 data = json.load(f)
                 return set(data.get("authorized_users", []))
         except (FileNotFoundError, json.JSONDecodeError):
-            print("⚠️ Missing config parameters.")
+            print("> ⚠️ Missing config parameters.")
             return set()
 
     @commands.command(name='channelsend', aliases=['cs'])
     async def channel_send(self, ctx, channel_id: str = None, *, message: str = None):
         if ctx.author.id not in self.authorized_users:
             await ctx.message.delete()
-            return await ctx.send("❌ This command can only be used by a small amount of people. You're not allowed to use this command.", delete_after=5)
+            return await ctx.send("> ❌ This command can only be used by a small amount of people. You're not allowed to use this command.", delete_after=5)
 
         if not channel_id or not message:
             embed = discord.Embed(
@@ -46,13 +46,13 @@ class OwnerCommands(commands.Cog):
         try:
             channel = self.bot.get_channel(int(channel_id))
             if not channel:
-                return await ctx.send("❌ Channel not found.", delete_after=5)
+                return await ctx.send("> ❌ Channel not found.", delete_after=5)
                 
             await channel.send(message)
-            await ctx.send(f"✅ Message sent to {channel.mention}", delete_after=5)
+            await ctx.send(f"> ✅ Message sent to {channel.mention}", delete_after=5)
             
         except ValueError:
-            await ctx.send("❌ Channel ID must be a number.", delete_after=5)
+            await ctx.send("> ❌ Channel ID must be a number.", delete_after=5)
         except Exception as e:
             await ctx.send(f"❌ Error: {str(e)}", delete_after=10)
 
@@ -61,7 +61,7 @@ class OwnerCommands(commands.Cog):
         
         if ctx.author.id not in self.authorized_users:
             await ctx.message.delete()
-            return await ctx.send("❌ Unauthorized access.", delete_after=5)
+            return await ctx.send("> ❌ This command can only be used by a small amount of people. You're not allowed to use this command.", delete_after=5)
 
         if not channel_id or not message_id or not message:
             embed = discord.Embed(
@@ -79,36 +79,36 @@ class OwnerCommands(commands.Cog):
         try:
             channel = self.bot.get_channel(int(channel_id))
             if not channel:
-                return await ctx.send("❌ Channel not found.", delete_after=5)
+                return await ctx.send("> ❌ Channel not found.", delete_after=5)
             
             try:
                 target_message = await channel.fetch_message(int(message_id))
             except discord.NotFound:
-                return await ctx.send("❌ Message not found in that channel.", delete_after=5)
+                return await ctx.send("> ❌ Message not found in that channel.", delete_after=5)
                 
             await channel.send(message, reference=target_message)
-            await ctx.send(f"✅ Replied successfully in {channel.mention}", delete_after=5)
+            await ctx.send(f"> ✅ Replied successfully in {channel.mention}", delete_after=5)
             
         except ValueError:
-            await ctx.send("❌ Channel ID and Message ID must be numbers.", delete_after=5)
+            await ctx.send("> ❌ Channel ID and Message ID must be numbers.", delete_after=5)
         except discord.Forbidden:
-            await ctx.send("❌ Missing permissions to read history or send messages in that channel.", delete_after=5)
+            await ctx.send("> ❌ Missing permissions to read history or send messages in that channel.", delete_after=5)
         except Exception as e:
-            await ctx.send(f"❌ Error: {str(e)}", delete_after=10)
+            await ctx.send(f"> ❌ Error: `{str(e)}`", delete_after=10)
 
-    @commands.command(name='extractlogs_json', aliases=['elogsj'])
+    @commands.command(name='extractlogs', aliases=['elogs'])
     async def extract_logs_json(self, ctx, limit: int = None, chunk_size: int = 10000):
         if ctx.author.id not in self.authorized_users:
-            return await ctx.send("❌ This command can only be used by a small amount of people. You're not allowed to use this command.", delete_after=5)
+            return await ctx.send("> ❌ This command can only be used by a small amount of people. You're not allowed to use this command.", delete_after=5)
 
         log_channel_id = 1366171674239832104 
         log_channel = self.bot.get_channel(log_channel_id)
 
         if not log_channel:
-            return await ctx.send("❌ Logs channel not found.")
+            return await ctx.send("> ❌ Logs channel not found.")
 
-        texto_limite = "the whole history" if limit is None else f"a max of {limit} messages"
-        msg_estado = await ctx.send(f"⏳ Processing {texto_limite} in batches of {chunk_size}... this will take some time.")
+        texto_limite = "the whole history" if limit is None else f"a max of **{limit}** messages"
+        msg_estado = await ctx.send(f"> ⏳ Processing **{texto_limite}** messages in batches of **{chunk_size}**... this will take some time.")
         
         ignored_texts = []
         try:
@@ -118,7 +118,7 @@ class OwnerCommands(commands.Cog):
                 data = json.load(f)
                 ignored_texts = data.get("ignored_texts", [])
         except Exception as e:
-            print(f"⚠️ Error loading config files to reading: {e}")
+            print(f"> ⚠️ Error loading config files to reading: {e}")
 
         def should_ignore(text):
             if not text: return False
@@ -181,7 +181,7 @@ class OwnerCommands(commands.Cog):
                     with open(file_path, "w", encoding="utf-8") as f:
                         json.dump(extracted_data, f, ensure_ascii=False, indent=4)
 
-                    await ctx.send(f"📦 Sending part {part_number} ({len(extracted_data)} messages)...", file=discord.File(file_path))
+                    await ctx.send(f"> 📦 Sending part {part_number} ({len(extracted_data)} messages)...", file=discord.File(file_path))
                     os.remove(file_path)
 
                     extracted_data.clear()
@@ -192,13 +192,13 @@ class OwnerCommands(commands.Cog):
                 with open(file_path, "w", encoding="utf-8") as f:
                     json.dump(extracted_data, f, ensure_ascii=False, indent=4)
 
-                await ctx.send(f"📦 Sending part {part_number} final ({len(extracted_data)} messages)...", file=discord.File(file_path))
+                await ctx.send(f"> 📦 Sending part {part_number} and final ({len(extracted_data)} messages)...", file=discord.File(file_path))
                 os.remove(file_path)
 
-            await msg_estado.edit(content=f"✅ Extraction complete. {total_processed} were sent and extracted in total.")
+            await msg_estado.edit(content=f"> ✅ Extraction complete. {total_processed} were sent and extracted in total.")
 
         except Exception as e:
-            await ctx.send(f"❌ Error during the extraction: {e}")
+            await ctx.send(f"> ❌ Error during the extraction: `{e}`")
 
 async def setup(bot):
     await bot.add_cog(OwnerCommands(bot))

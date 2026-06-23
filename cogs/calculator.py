@@ -22,7 +22,7 @@ class CalculatorButtons(ui.View):
             result = str(eval(self.expression.replace('pi', '3.14159')))
             self.expression = result
         except Exception as e:
-            await interaction.response.send_message("Buddy, your expresion is invalid!", ephemeral=True)
+            await interaction.response.send_message("> ⚠️ Buddy, your expresion is invalid!", ephemeral=True)
             self.expression = "..."
         await self.update(interaction)
 
@@ -117,7 +117,7 @@ class Calculator_Command(commands.Cog):
     @app_commands.command(name="calculator", description="Sends an interactive calculator.")
     async def calculator(self, interaction: discord.Interaction):
         view = CalculatorButtons()
-        await interaction.response.send_message("```\n...\n```", view=view)
+        await interaction.response.send_message("# ```\n...\n```", view=view)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Calculator_Command(bot))

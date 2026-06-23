@@ -11,9 +11,8 @@ class DataCore(commands.Cog):
         self.root_dir = os.path.dirname(cog_dir)
         self.log_path = os.path.join(self.root_dir, "logs", "chat_log.json")
         
-        # Variables Globales en la RAM
-        self.bot.global_chat_data = []      # Para búsquedas rápidas, WordClouds y canales
-        self.bot.global_markov_model = None # Para el modelo unificado
+        self.bot.global_chat_data = []      # Faster searches
+        self.bot.global_markov_model = None # Unified model
 
         self.update_brain_loop.start()
 
@@ -37,24 +36,22 @@ class DataCore(commands.Cog):
     async def update_brain_loop(self):
         try:
             if not os.path.exists(self.log_path):
-                print("⚠️ [Data Core] No se encontró chat_log.json.")
+                print("[Markovify] ⚠️ chat_log.json not found.")
                 return
 
             with open(self.log_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 
             if data:
-                # 1. Guardamos los datos puros en RAM
                 self.bot.global_chat_data = data
                 
-                # 2. Entrenamos a Markovify
                 texto = self._extract_text_for_markovify(data)
                 if texto.strip() and len(texto.splitlines()) >= 5:
                     self.bot.global_markov_model = markovify.NewlineText(texto, well_formed=False)
-                    print(f"🧠 [Data Core] Cerebro en línea. {len(data)} mensajes en memoria global.")
+                    print(f"[Markovify] 🧠 The model is online. {len(data)} messages are loaded.")
                     
         except Exception as e:
-            print(f"❌ [Data Core] Error al actualizar el cerebro: {e}")
+            print(f"[Markovify] ❌ Error auto-updating the model: {e}")
 
     @update_brain_loop.before_loop
     async def before_update_brain(self):

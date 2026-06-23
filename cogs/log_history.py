@@ -14,48 +14,41 @@ class LogHistory(commands.Cog):
 
     @app_commands.command(
         name="log-history",
-        description="Shows up a magical random message from the JSON vault!"
+        description="Shows up a magical random message stored in the ancient vaults!"
     )
     @app_commands.describe(
-        value="Message ID to show (leave empty to show a random one!)"
+        value="Message ID to show (leave empty to show a random one)"
     )
     async def log_history(self, interaction: discord.Interaction, value: int = None):
         if not os.path.exists(self.log_file):
-            return await interaction.response.send_message("⚠️ Archivo `chat_log.json` no encontrado.", ephemeral=True)
+            return await interaction.response.send_message("> ⚠️ Log files not found on the system. This is not your fault, it's the developer's fault!", ephemeral=True)
             
         try:
             with open(self.log_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
         except Exception as e:
-            return await interaction.response.send_message(f"❌ Error leyendo el JSON: {e}", ephemeral=True)
+            return await interaction.response.send_message(f"> ❌ Error reading log files: `{e}`", ephemeral=True)
             
         total_lines = len(data)
         
         if total_lines == 0:
-            return await interaction.response.send_message("⚠️ No hay mensajes registrados.", ephemeral=True)
+            return await interaction.response.send_message("> ⚠️ Surprisingly, there are no logged message yet...", ephemeral=True)
         
         if value is not None:
             if value <= 0 or value > total_lines:
-                return await interaction.response.send_message(f"❌ Value must be in between 1 and {total_lines}.", ephemeral=True)
+                return await interaction.response.send_message(f"> ❌ Value must be in between **1** and **{total_lines}**.", ephemeral=True)
             selected_msg = data[value - 1]
         else:
             selected_msg = random.choice(data)
             value = data.index(selected_msg) + 1
         
-        server_txt = f"Servidor ID: {selected_msg.get('server_id')}" if selected_msg.get('server_id') else "Mensaje Directo"
-        
         adjuntos_lista = selected_msg.get('attachments', [])
-        adjuntos = "\n📎 " + "\n📎 ".join(adjuntos_lista) if adjuntos_lista else ""
+        adjuntos = "\n " + "\n ".join(adjuntos_lista) if adjuntos_lista else ""
         
-        timestamp = selected_msg.get('timestamp', 'Desconocido')
-        channel_id = selected_msg.get('channel_id', 'Desconocido')
-        user_id = selected_msg.get('user_id', 'Desconocido')
         content = selected_msg.get('content', '*Sin contenido de texto*')
 
         formato = (
-            f"**Mensaje #{value}** | 📅 `{timestamp}`\n"
-            f"🌐 {server_txt} | 💬 <#{channel_id}>\n"
-            f"👤 <@{user_id}>: {content}"
+            f"{content}"
             f"{adjuntos}"
         )
         
