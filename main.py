@@ -26,9 +26,6 @@ class Client(commands.Bot):
         print(f"[Bot] 🤖 Connected to {len(self.guilds)} servers:")
         print(f"[Bot] 🤖 {[guild.name for guild in self.guilds]}")
 
-        activity = discord.Game(name="Empanada de Pino", type=3)
-        await client.change_presence(status=discord.Status.dnd, activity=activity)
-
         channel_to_send = client.get_channel(1174602784541245490)
         await channel_to_send.send(f"Ok {str(len(synced))}.\nOk {len(self.guilds)}\n{[guild.name for guild in self.guilds]}")
 
