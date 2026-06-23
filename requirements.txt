@@ -3,3 +3,5 @@ urllib3
 python-dotenv
 wordcloud
 markovify
+aiohttp==3.9.3
+Pillow==10.2.0
