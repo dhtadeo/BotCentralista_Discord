@@ -52,7 +52,15 @@ class LogHistory(commands.Cog):
             f"{adjuntos}"
         )
         
-        await interaction.response.send_message(formato)
+        view = discord.ui.View()
+        boton_id = discord.ui.Button(
+            label=f"ID: {value}", 
+            style=discord.ButtonStyle.secondary,
+            disabled=True
+        )
+        view.add_item(boton_id)
+
+        await interaction.response.send_message(formato, view=view)
 
 async def setup(bot):
     await bot.add_cog(LogHistory(bot))

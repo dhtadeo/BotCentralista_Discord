@@ -11,7 +11,6 @@ class OwnerCommands(commands.Cog):
         self.authorized_users = self._load_authorized_users()
 
     def _load_authorized_users(self):
-        """Lee el archivo config.json y devuelve un set de IDs"""
         cog_dir = os.path.dirname(os.path.abspath(__file__))
         root_dir = os.path.dirname(cog_dir)
         config_path = os.path.join(root_dir, "config.json")
