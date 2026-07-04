@@ -59,8 +59,12 @@ class LogHistory(commands.Cog):
             disabled=True
         )
         view.add_item(boton_id)
-
-        await interaction.response.send_message(formato, view=view)
+        
+        await interaction.response.send_message(
+            formato, 
+            view=view, 
+            allowed_mentions=discord.AllowedMentions.none()
+        )
 
 async def setup(bot):
     await bot.add_cog(LogHistory(bot))

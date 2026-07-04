@@ -46,7 +46,10 @@ class GenerateMessageChannel(commands.Cog):
                 if oracion: break
 
             if oracion:
-                await interaction.followup.send(oracion)
+                await interaction.followup.send(
+                    oracion,
+                    allowed_mentions=discord.AllowedMentions.none()
+                )
             else:
                 await interaction.followup.send("> ⚠️ Couldn't generate a message after many tries...")
 

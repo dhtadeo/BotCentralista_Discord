@@ -20,7 +20,10 @@ class GenerateMessageLog(commands.Cog):
                 if oracion: break
 
             if oracion:
-                await interaction.followup.send(oracion, allowed_mentions=discord.AllowedMentions.none())
+                await interaction.followup.send(
+                    oracion, 
+                    allowed_mentions=discord.AllowedMentions.none()
+                )
             else:
                 await interaction.followup.send("⚠️ Couldn't generate a coherent message after multiple tries.")
         except Exception as e:
@@ -58,8 +61,10 @@ class GenerateMessageLog(commands.Cog):
                     if oracion: break
 
                 if oracion:
-                    mentions_config = discord.AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
-                    await message.reply(oracion, allowed_mentions=mentions_config)
+                    await message.reply(
+                        oracion, 
+                        allowed_mentions=discord.AllowedMentions.none()
+                    )
             except Exception as e:
                 print(f"[Autoreply] ❌ Autoreply error: {e}")
 
