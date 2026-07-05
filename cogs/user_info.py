@@ -11,10 +11,10 @@ class UserInfo(commands.Cog):
         description="Shows a user's info."
     )
     @app_commands.describe(
-        miembro="The user you want to fetch data (leave it blank to see yours)"
+        username="The user you want to fetch data (leave it blank to see yours)"
     )
-    async def user_info(self, interaction: discord.Interaction, miembro: discord.Member = None):
-        miembro = miembro or interaction.user
+    async def user_info(self, interaction: discord.Interaction, username: discord.Member = None):
+        miembro = username or interaction.user
 
         embed = discord.Embed(
             title=f"{miembro.display_name}'s info", 
