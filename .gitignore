@@ -5,3 +5,4 @@ logs/chat_log.json
 logs/server/
 **/__pycache__/
 *.pyc
+nohup.out

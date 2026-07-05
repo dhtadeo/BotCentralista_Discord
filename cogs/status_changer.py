@@ -10,7 +10,7 @@ class StatusRotation(commands.Cog):
     def cog_unload(self):
         self.rotate_status.cancel()
 
-    @tasks.loop(minutes=2)
+    @tasks.loop(minutes=5)
     async def rotate_status(self):
         total_servers = len(self.bot.guilds)
         total_users = sum(guild.member_count for guild in self.bot.guilds if guild.member_count)
@@ -41,7 +41,7 @@ class StatusRotation(commands.Cog):
             discord.CustomActivity(name="No blind people. This place is for certified #Seers and #Lookers only."),
             discord.CustomActivity(name="Poop"),
             discord.CustomActivity(name="Live your zestiest most bestiest life"),
-            discord.CustomActivity(name=f"{total_messages} x {total_servers} = {total_messages + total_servers}"),
+            discord.CustomActivity(name=f"{total_messages} x {total_servers} = {total_messages * total_servers}"),
             discord.CustomActivity(name="This poor generation has no tolerable future"),
             discord.CustomActivity(name="1984"),
             discord.CustomActivity(name="Roast meat, not cities"),
