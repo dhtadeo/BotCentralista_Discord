@@ -26,7 +26,7 @@ class UserInfo(commands.Cog):
 
         embed.add_field(name="👤 User", value=f"{miembro.name}", inline=True)
         embed.add_field(name="🆔 ID", value=f"`{miembro.id}`", inline=True)
-        embed.add_field(name="🤖 Is Bot", value="Sí" if miembro.bot else "No", inline=True)
+        embed.add_field(name="🤖 Is Bot", value="Yes" if miembro.bot else "No", inline=True)
 
         creacion_ts = int(miembro.created_at.timestamp())
         embed.add_field(
