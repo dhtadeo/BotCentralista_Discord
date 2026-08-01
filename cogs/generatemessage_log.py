@@ -1,6 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
+import markovify
 
 class GenerateMessageLog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -52,21 +53,76 @@ class GenerateMessageLog(commands.Cog):
             return
 
         async with message.channel.typing():
-            if getattr(self.bot, 'global_markov_model', None) is None: return
+            data = getattr(self.bot, 'global_chat_data', [])
+            oracion_final = None
 
-            try:
-                oracion = None
-                for _ in range(50):
-                    oracion = self.bot.global_markov_model.make_sentence()
-                    if oracion: break
+            # Train and generate
+            def intentar_generar(lista_mensajes):
+                texto = "\n".join(lista_mensajes)
+                if not texto.strip() or len(texto.splitlines()) < 5:
+                    return None
+                try:
+                    modelo = markovify.NewlineText(texto, well_formed=False)
+                    for _ in range(50):
+                        oracion = modelo.make_sentence()
+                        if oracion: return oracion
+                except:
+                    pass
+                return None
 
-                if oracion:
+            # Get filtered messages
+            if data:
+                canal_msgs = []
+                server_msgs = []
+
+                for msg in data:
+                    if message.guild and msg.get("server_id") == message.guild.id:
+                        # From this server
+                        texto_msg = msg.get("content", "").strip()
+                        adjuntos = msg.get("attachments", [])
+                        if texto_msg or adjuntos:
+                            linea = texto_msg
+                            if adjuntos: linea += " " + " ".join(adjuntos)
+                            linea = linea.strip()
+                            
+                            server_msgs.append(linea)
+                            # From this channel
+                            if msg.get("channel_id") == message.channel.id:
+                                canal_msgs.append(linea)
+                    
+                    elif not message.guild and msg.get("channel_id") == message.channel.id:
+                        # If DM
+                        texto_msg = msg.get("content", "").strip()
+                        adjuntos = msg.get("attachments", [])
+                        if texto_msg or adjuntos:
+                            linea = texto_msg
+                            if adjuntos: linea += " " + " ".join(adjuntos)
+                            canal_msgs.append(linea.strip())
+
+                # LEVEL 1: Channel messages
+                oracion_final = intentar_generar(canal_msgs)
+
+                # LEVEL 2: Server messages
+                if not oracion_final and message.guild:
+                    oracion_final = intentar_generar(server_msgs)
+
+            # LEVEL 3: Log messages (if LEVEL 1 and 2 failed to generate a message)
+            if not oracion_final and getattr(self.bot, 'global_markov_model', None) is not None:
+                try:
+                    for _ in range(50):
+                        oracion_final = self.bot.global_markov_model.make_sentence()
+                        if oracion_final: break
+                except:
+                    pass
+
+            if oracion_final:
+                try:
                     await message.reply(
-                        oracion, 
+                        oracion_final, 
                         allowed_mentions=discord.AllowedMentions.none()
                     )
-            except Exception as e:
-                print(f"[Autoreply] ❌ Autoreply error: {e}")
+                except Exception as e:
+                    print(f"[Autoreply] ❌ Autoreply error: {e}")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(GenerateMessageLog(bot))
