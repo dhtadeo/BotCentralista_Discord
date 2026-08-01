@@ -41,7 +41,9 @@ class Say_Command(commands.Cog):
             await interaction.response.send_message("> ❌ There should be at least content in `say_something` or `attachment` to send the message.", ephemeral=True)
             return
 
-        if impersonate and interaction.user.id not in self.authorized_users:
+        is_authorized = interaction.user.id in self.authorized_users
+
+        if impersonate and not is_authorized:
             await interaction.response.send_message("> ❌ `impersonate` is currently disabled, will be enabled for use in a future update.", ephemeral=True)
             return
         
@@ -54,6 +56,20 @@ class Say_Command(commands.Cog):
             kwargs['content'] = say_something
         if file_to_send:
             kwargs['file'] = file_to_send
+
+        if is_authorized:
+            kwargs['allowed_mentions'] = discord.AllowedMentions.all()
+        else:
+            kwargs['allowed_mentions'] = discord.AllowedMentions.none()
+            
+            view = discord.ui.View()
+            boton_autor = discord.ui.Button(
+                label=f"{interaction.user.display_name}", 
+                style=discord.ButtonStyle.secondary,
+                disabled=True
+            )
+            view.add_item(boton_autor)
+            kwargs['view'] = view
 
         if not impersonate:
             await interaction.channel.send(**kwargs)
