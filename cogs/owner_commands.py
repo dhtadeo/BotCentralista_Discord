@@ -95,6 +95,49 @@ class OwnerCommands(commands.Cog):
         except Exception as e:
             await ctx.send(f"> ❌ Error: `{str(e)}`", delete_after=10)
 
+    @commands.command(name='getlogs', aliases=['gl'])
+    async def get_logs(self, ctx, file_type: str = None):
+        if ctx.author.id not in self.authorized_users:
+            return await ctx.send("> ❌ This command can only be used by a small amount of people. You're not allowed to use this command.", delete_after=5)
+
+        cog_dir = os.path.dirname(os.path.abspath(__file__))
+        root_dir = os.path.dirname(cog_dir)
+        logs_dir = os.path.join(root_dir, "logs")
+        
+        valid_files = {
+            "messages": "messages.json",
+            "users": "users.json",
+            "servers": "servers.json",
+            "channels": "channels.json"
+        }
+        
+        if file_type:
+            file_type = file_type.lower()
+            if file_type not in valid_files:
+                return await ctx.send("> ❌ Invalid file type. Choose from: `messages`, `users`, `servers`, `channels`.", delete_after=10)
+            target_files = [valid_files[file_type]]
+        else:
+            target_files = list(valid_files.values())
+        
+        files_to_send = []
+        for filename in target_files:
+            file_path = os.path.join(logs_dir, filename)
+            if os.path.exists(file_path):
+                files_to_send.append(discord.File(file_path))
+                
+        if not files_to_send:
+            return await ctx.send("> ⚠️ No log files were found for your request in the logs directory.")
+            
+        msg = await ctx.send("> ⏳ Preparing to send database files...")
+        
+        try:
+            await ctx.send("> 🗄️ Here are the requested database files:", files=files_to_send)
+            await msg.delete()
+        except discord.HTTPException as e:
+            await msg.edit(content=f"> ❌ Failed to send files (they might be too large for Discord limits). Error: `{e}`")
+        except Exception as e:
+            await msg.edit(content=f"> ❌ An unexpected error occurred: `{e}`")
+
     @commands.command(name='extractlogs', aliases=['elogs'])
     async def extract_logs_json(self, ctx, limit: int = None, chunk_size: int = 10000):
         if ctx.author.id not in self.authorized_users:
@@ -123,7 +166,11 @@ class OwnerCommands(commands.Cog):
             if not text: return False
             return any(ignored.lower() in text.lower() for ignored in ignored_texts)
 
-        extracted_data = []
+        messages_data = []
+        users_db = {}
+        servers_db = {}
+        channels_db = {}
+        
         part_number = 1
         total_processed = 0
 
@@ -133,7 +180,6 @@ class OwnerCommands(commands.Cog):
                     continue
                 
                 embed = message.embeds[0]
-                
                 if embed.title == "📨 Mensaje Directo":
                     continue
 
@@ -142,59 +188,147 @@ class OwnerCommands(commands.Cog):
                 else:
                     timestamp_str = message.created_at.strftime('%Y-%m-%d %H:%M:%S')
 
-                data_entry = {
-                    "server_id": None,
-                    "channel_id": None,
-                    "user_id": None,
-                    "timestamp": timestamp_str,
-                    "content": "",
-                    "attachments": []
-                }
+                server_id = None
+                channel_id = None
+                message_id = None
+                user_id = None
+                content = ""
+                attachments = []
+                
+                server_name_fallback = embed.title.replace("📨 Mensaje en ", "") if embed.title else "Servidor Desconocido"
 
                 for field in embed.fields:
                     if field.name == "Enlace":
-                        match = re.search(r'channels/(\d+)/', field.value)
-                        if match: data_entry["server_id"] = int(match.group(1))
+                        match = re.search(r'channels/(\d+)/(\d+)/(\d+)', field.value)
+                        if match:
+                            server_id = int(match.group(1))
+                            channel_id = int(match.group(2))
+                            message_id = int(match.group(3))
                     elif field.name == "Canal":
                         match = re.search(r'<#(\d+)>', field.value)
-                        if match: data_entry["channel_id"] = int(match.group(1))
+                        if match and not channel_id: channel_id = int(match.group(1))
                     elif field.name == "Autor":
                         match = re.search(r'\(ID:\s*(\d+)\)', field.value)
-                        if match: data_entry["user_id"] = int(match.group(1))
+                        if match: user_id = int(match.group(1))
                     elif field.name == "Contenido":
                         if field.value != "*Sin contenido de texto*":
-                            data_entry["content"] = field.value
+                            content = field.value
                     elif field.name == "Archivos adjuntos":
                         urls = re.findall(r'\((https?://[^\)]+)\)', field.value)
-                        data_entry["attachments"] = urls
+                        attachments = urls
 
-                if should_ignore(data_entry["content"]):
+                if should_ignore(content):
                     continue
 
-                extracted_data.append(data_entry)
+                if not message_id or not user_id or not channel_id or not server_id:
+                    continue
+
+                guild = self.bot.get_guild(server_id)
+                if guild:
+                    servers_db[server_id] = {
+                        "server_id": server_id,
+                        "name": guild.name,
+                        "icon": guild.icon.url if guild.icon else None,
+                        "timestamp": guild.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                    }
+                else:
+                    servers_db[server_id] = {
+                        "server_id": server_id,
+                        "name": server_name_fallback,
+                        "icon": None,
+                        "timestamp": None
+                    }
+
+                channel = self.bot.get_channel(channel_id)
+                if channel:
+                    channels_db[channel_id] = {
+                        "channel_id": channel_id,
+                        "server_id": server_id,
+                        "name": channel.name,
+                        "type": str(channel.type),
+                        "timestamp": channel.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                    }
+                else:
+                    if channel_id not in channels_db:
+                        channels_db[channel_id] = {
+                            "channel_id": channel_id,
+                            "server_id": server_id,
+                            "name": f"Canal Borrado ({channel_id})",
+                            "type": None,
+                            "timestamp": None
+                        }
+
+                user = self.bot.get_user(user_id)
+                if user:
+                    users_db[user_id] = {
+                        "user_id": user_id,
+                        "name": user.display_name,
+                        "username": user.name,
+                        "icon": user.avatar.url if user.avatar else user.default_avatar.url,
+                        "is_bot": user.bot,
+                        "timestamp": user.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                    }
+                else:
+                    if user_id not in users_db:
+                        users_db[user_id] = {
+                            "user_id": user_id,
+                            "name": "Usuario Desconocido",
+                            "username": "desconocido",
+                            "icon": None,
+                            "is_bot": False,
+                            "timestamp": None
+                        }
+
+                messages_data.append({
+                    "message_id": message_id,
+                    "content": content,
+                    "attachments": attachments,
+                    "user_id": user_id,
+                    "channel_id": channel_id,
+                    "server_id": server_id,
+                    "created_at": timestamp_str
+                })
+
                 total_processed += 1
 
-                if len(extracted_data) >= chunk_size:
-                    file_path = f"logs_estructurados_pt{part_number}.json"
+                if len(messages_data) >= chunk_size:
+                    file_path = f"messages_pt{part_number}.json"
                     
                     with open(file_path, "w", encoding="utf-8") as f:
-                        json.dump(extracted_data, f, ensure_ascii=False, indent=4)
+                        json.dump(messages_data, f, ensure_ascii=False, indent=4)
 
-                    await ctx.send(f"> 📦 Sending part {part_number} ({len(extracted_data)} messages)...", file=discord.File(file_path))
+                    await ctx.send(f"> 📦 Sending messages part {part_number} ({len(messages_data)} messages)...", file=discord.File(file_path))
                     os.remove(file_path)
 
-                    extracted_data.clear()
+                    messages_data.clear()
                     part_number += 1
 
-            if extracted_data:
-                file_path = f"logs_estructurados_pt{part_number}.json"
+            if messages_data:
+                file_path = f"messages_pt{part_number}.json"
                 with open(file_path, "w", encoding="utf-8") as f:
-                    json.dump(extracted_data, f, ensure_ascii=False, indent=4)
+                    json.dump(messages_data, f, ensure_ascii=False, indent=4)
 
-                await ctx.send(f"> 📦 Sending part {part_number} and final ({len(extracted_data)} messages)...", file=discord.File(file_path))
+                await ctx.send(f"> 📦 Sending messages part {part_number} and final ({len(messages_data)} messages)...", file=discord.File(file_path))
                 os.remove(file_path)
+                
+            dbs = {
+                "users.json": users_db,
+                "servers.json": servers_db,
+                "channels.json": channels_db
+            }
+            
+            files_to_send = []
+            for filename, data_dict in dbs.items():
+                with open(filename, "w", encoding="utf-8") as f:
+                    json.dump(data_dict, f, ensure_ascii=False, indent=4)
+                files_to_send.append(discord.File(filename))
+                
+            if files_to_send:
+                await ctx.send("> 🗄️ Sending relational databases...", files=files_to_send)
+                for f in files_to_send:
+                    os.remove(f.filename)
 
-            await msg_estado.edit(content=f"> ✅ Extraction complete. {total_processed} were sent and extracted in total.")
+            await msg_estado.edit(content=f"> ✅ Extraction complete. {total_processed} messages processed and relations mapped successfully.")
 
         except Exception as e:
             await ctx.send(f"> ❌ Error during the extraction: `{e}`")

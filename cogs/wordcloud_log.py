@@ -3,8 +3,6 @@ from discord import app_commands
 from discord.ext import commands
 from wordcloud import WordCloud
 from io import BytesIO
-import os
-import json
 
 class WordCloudLog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -14,19 +12,12 @@ class WordCloudLog(commands.Cog):
     async def wordcloud_log(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        cog_dir = os.path.dirname(os.path.abspath(__file__))
-        root_dir = os.path.dirname(cog_dir)
-        log_path = os.path.join(root_dir, "logs", "chat_log.json")
-
         try:
-            with open(log_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            mensajes = [msg["content"] for msg in data if msg.get("content")]
+            data = getattr(self.bot, 'global_chat_data', [])
+            mensajes = [msg.get("content", "").strip() for msg in data if msg.get("content")]
             texto = "\n".join(mensajes)
-        except FileNotFoundError:
-            return await interaction.followup.send("> ⚠️ Log files not found on the system. This is not your fault, it's the developer's fault!", ephemeral=True)
         except Exception as e:
-            return await interaction.followup.send(f"> ❌ Error reading log files: `{e}`")
+            return await interaction.followup.send(f"> ❌ Error reading log data: `{e}`")
 
         if not texto.strip():
             return await interaction.followup.send("> ❌ There's not enough text in the logs to generate the WordCloud.")

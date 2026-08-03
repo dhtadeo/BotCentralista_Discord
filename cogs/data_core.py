@@ -9,7 +9,7 @@ class DataCore(commands.Cog):
         self.bot = bot
         cog_dir = os.path.dirname(os.path.abspath(__file__))
         self.root_dir = os.path.dirname(cog_dir)
-        self.log_path = os.path.join(self.root_dir, "logs", "chat_log.json")
+        self.log_path = os.path.join(self.root_dir, "logs", "messages.json")
         
         self.bot.global_chat_data = []      # Faster searches
         self.bot.global_markov_model = None # Unified model

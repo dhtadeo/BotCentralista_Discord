@@ -10,7 +10,8 @@ class LogHistory(commands.Cog):
         self.bot = bot
         cog_dir = os.path.dirname(os.path.abspath(__file__))
         root_dir = os.path.dirname(cog_dir)
-        self.log_file = os.path.join(root_dir, "logs", "chat_log.json")
+        self.log_file = os.path.join(root_dir, "logs", "messages.json")
+        self.users_file = os.path.join(root_dir, "logs", "users.json")
 
     @app_commands.command(
         name="log-history",
@@ -32,20 +33,22 @@ class LogHistory(commands.Cog):
         total_lines = len(data)
         
         if total_lines == 0:
-            return await interaction.response.send_message("> ⚠️ Surprisingly, there are no logged message yet...", ephemeral=True)
+            return await interaction.response.send_message("> ⚠️ Surprisingly, there are no logged messages yet...", ephemeral=True)
         
         if value is not None:
             if value <= 0 or value > total_lines:
                 return await interaction.response.send_message(f"> ❌ Value must be in between **1** and **{total_lines}**.", ephemeral=True)
-            selected_msg = data[value - 1]
+            index = value - 1
         else:
-            selected_msg = random.choice(data)
-            value = data.index(selected_msg) + 1
+            index = random.randint(0, total_lines - 1)
+            value = index + 1
+            
+        selected_msg = data[index]
         
         adjuntos_lista = selected_msg.get('attachments', [])
         adjuntos = "\n " + "\n ".join(adjuntos_lista) if adjuntos_lista else ""
         
-        content = selected_msg.get('content', '*Sin contenido de texto*')
+        content = selected_msg.get('content', '*Empty*')
 
         formato = (
             f"{content}"
@@ -53,6 +56,7 @@ class LogHistory(commands.Cog):
         )
         
         view = discord.ui.View()
+        
         boton_id = discord.ui.Button(
             label=f"ID: {value}", 
             style=discord.ButtonStyle.secondary,
