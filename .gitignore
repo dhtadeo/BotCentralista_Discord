@@ -1,12 +1,6 @@
-logs/chat_log.txt
-logs/chat_log_prop.txt
-logs/chat_log.json
-logs/messages.json
-logs/channels.json
-logs/servers.json
-logs/users.json
+logs/bc_logs.db
+logs/json_to_sqlite_migration.py
 .env
-logs/server/
 **/__pycache__/
 *.pyc
 nohup.out

@@ -53,17 +53,16 @@ class MessageLogger(commands.Cog):
             return
         
         try:
-            self.log_writer.write_json_log(message)
+            self.log_writer.write_log(message)
         except Exception as e:
-            print(f"[Logger] ❌ Error al writing JSON file: {e}")
+            print(f"[Logger] ❌ Error writing to database: {e}")
             
+        '''    
         try:
             await self.send_to_log_channel(message, is_dm=not message.guild)
         except Exception as e:
             print(f"[Logger] ❌ Error sending log: {e}")
-
-        if message.author.bot or message.content.startswith('.bc'):
-            return
+        '''
 
 async def setup(bot):
     await bot.add_cog(MessageLogger(bot))
