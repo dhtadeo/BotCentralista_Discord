@@ -12,6 +12,19 @@ class LogHistory(commands.Cog):
         cog_dir = os.path.dirname(os.path.abspath(__file__))
         root_dir = os.path.dirname(cog_dir)
         self.db_path = os.path.join(root_dir, "logs", "bc_logs.db")
+        self.config_path = os.path.join(root_dir, "config.json")
+
+    def _get_blacklist_channels(self):
+        try:
+            if not os.path.exists(self.config_path):
+                return []
+            with open(self.config_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                raw_blacklist = data.get("blacklist_channels", [])
+                return [int(ch) for ch in raw_blacklist if str(ch).isdigit()]
+        except Exception as e:
+            print(f"[LogHistory] ⚠️ Error loading blacklist_channels from config.json: {e}")
+            return []
 
     @app_commands.command(
         name="log-history",
@@ -35,27 +48,62 @@ class LogHistory(commands.Cog):
                 conn.close()
                 return await interaction.response.send_message("> ⚠️ Surprisingly, there are no logged messages yet...", ephemeral=True)
             
+            blacklist = self._get_blacklist_channels()
+
             if value is not None:
                 if value <= 0 or value > total_lines:
                     conn.close()
                     return await interaction.response.send_message(f"> ❌ Value must be in between **1** and **{total_lines}**.", ephemeral=True)
+                
                 offset = value - 1
+                cursor.execute("SELECT content, attachments, channel_id FROM messages LIMIT 1 OFFSET ?", (offset,))
+                row = cursor.fetchone()
+                conn.close()
+
+                if not row:
+                    return await interaction.response.send_message("> ❌ Message not found.", ephemeral=True)
+
+                content_raw, attachments_raw, channel_id = row[0], row[1], row[2]
+
+                if channel_id and int(channel_id) in blacklist:
+                    return await interaction.response.send_message("> 🔒 Locked message. Try with a different `value`.", ephemeral=True)
+
             else:
-                offset = random.randint(0, total_lines - 1)
-                value = offset + 1
-                
-            cursor.execute("""
-                SELECT content, attachments FROM messages LIMIT 1 OFFSET ?
-            """, (offset,))
-            row = cursor.fetchone()
-            conn.close()
-            
-            if not row:
-                return await interaction.response.send_message("> ❌ Message not found.", ephemeral=True)
-                
-            content_raw = row[0]
-            attachments_raw = row[1]
-            
+                if blacklist:
+                    placeholders = ','.join('?' * len(blacklist))
+                    query = f"""
+                        WITH numbered AS (
+                            SELECT ROW_NUMBER() OVER (ORDER BY rowid) AS row_num, content, attachments, channel_id 
+                            FROM messages
+                        ) 
+                        SELECT row_num, content, attachments, channel_id 
+                        FROM numbered 
+                        WHERE channel_id NOT IN ({placeholders}) 
+                        ORDER BY RANDOM() 
+                        LIMIT 1
+                    """
+                    cursor.execute(query, tuple(blacklist))
+                else:
+                    query = """
+                        WITH numbered AS (
+                            SELECT ROW_NUMBER() OVER (ORDER BY rowid) AS row_num, content, attachments, channel_id 
+                            FROM messages
+                        ) 
+                        SELECT row_num, content, attachments, channel_id 
+                        FROM numbered 
+                        ORDER BY RANDOM() 
+                        LIMIT 1
+                    """
+                    cursor.execute(query)
+
+                row = cursor.fetchone()
+                conn.close()
+
+                if not row:
+                    return await interaction.response.send_message("> ⚠️ No available messages to display...", ephemeral=True)
+
+                value, content_raw, attachments_raw, channel_id = row[0], row[1], row[2], row[3]
+
             attachments_lista = []
             if attachments_raw:
                 try:

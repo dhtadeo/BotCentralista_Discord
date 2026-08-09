@@ -20,7 +20,7 @@ class OwnerCommands(commands.Cog):
                 data = json.load(f)
                 return set(data.get("authorized_users", []))
         except (FileNotFoundError, json.JSONDecodeError):
-            print("> ⚠️ Missing config parameters.")
+            print("[OwnerCommands] ⚠️ Missing config parameters.")
             return set()
 
     @commands.command(name='channelsend', aliases=['cs'])

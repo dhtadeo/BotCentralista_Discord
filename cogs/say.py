@@ -19,7 +19,7 @@ class Say_Command(commands.Cog):
                 data = json.load(f)
                 return set(data.get("authorized_users", []))
         except (FileNotFoundError, json.JSONDecodeError):
-            print("> ⚠️ Config files not found.")
+            print("[Say] ⚠️ Config files not found.")
             return set()
 
     async def get_webhook(self, channel):

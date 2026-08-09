@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands, ui
 from discord.ext import commands
-
+'''
 class CalculatorButtons(ui.View):
     def __init__(self) -> None:
         super().__init__(timeout=None)
@@ -109,15 +109,16 @@ class CalculatorButtons(ui.View):
     @ui.button(label="=", style=discord.ButtonStyle.green, row=4)
     async def equals(self, interaction: discord.Interaction, Button: discord.ui.Button):
         await self.solve(interaction)
-
+'''
 class Calculator_Command(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @app_commands.command(name="calculator", description="Sends an interactive calculator.")
     async def calculator(self, interaction: discord.Interaction):
-        view = CalculatorButtons()
-        await interaction.response.send_message("# ```\n...\n```", view=view)
+        # view = CalculatorButtons()
+        # await interaction.response.send_message("# ```\n...\n```", view=view)
+        await interaction.response.send_message("> Coming soon...", ephemeral=True)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Calculator_Command(bot))

@@ -27,7 +27,7 @@ class Client(commands.Bot):
         print(f"[Bot] 🤖 {[guild.name for guild in self.guilds]}")
 
         channel_to_send = client.get_channel(1174602784541245490)
-        await channel_to_send.send(f"Ok {str(len(synced))}.\nOk {len(self.guilds)}\n{[guild.name for guild in self.guilds]}")
+        await channel_to_send.send(f"**{str(len(synced))}** commands synced. \n**{len(self.guilds)}** servers:\n\n```{[guild.name for guild in self.guilds]}```")
 
 client = Client()
 
