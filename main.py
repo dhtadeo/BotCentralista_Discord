@@ -14,10 +14,20 @@ class Client(commands.Bot):
         
     async def setup_hook(self):
         cogs_path = pathlib.Path(__file__).parent / "cogs"
+        
+        # Load /cogs/*.py
         for filename in os.listdir(cogs_path):
             if filename.endswith('.py') and not filename.startswith('_'):
                 await self.load_extension(f"cogs.{filename[:-3]}")
                 print(f"[Commands] 🧮 {filename} loaded.")
+                
+        # Load /cogs/admin/*.py
+        admin_path = cogs_path / "admin"
+        if admin_path.exists():
+            for filename in os.listdir(admin_path):
+                if filename.endswith('.py') and not filename.startswith('_'):
+                    await self.load_extension(f"cogs.admin.{filename[:-3]}")
+                    print(f"[Commands] 🧮 admin/{filename} loaded.")
 
     async def on_ready(self):
         print(f"[Bot] 🤖 Logged as: {self.user.name}")
