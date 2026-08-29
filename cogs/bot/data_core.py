@@ -9,7 +9,8 @@ class DataCore(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         cog_dir = os.path.dirname(os.path.abspath(__file__))
-        self.root_dir = os.path.dirname(cog_dir)
+
+        self.root_dir = os.path.dirname(os.path.dirname(cog_dir))
         self.db_path = os.path.join(self.root_dir, "logs", "bc_logs.db")
         
         self.bot.global_chat_data = []      # RAM searches

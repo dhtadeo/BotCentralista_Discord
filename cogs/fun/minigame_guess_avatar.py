@@ -77,7 +77,8 @@ class GuessAvatarGame(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         cog_dir = os.path.dirname(os.path.abspath(__file__))
-        self.db_path = os.path.join(os.path.dirname(cog_dir), "logs", "bc_logs.db")
+
+        self.db_path = os.path.join(os.path.dirname(os.path.dirname(cog_dir)), "logs", "bc_logs.db")
 
     @app_commands.command(
         name="minigame-guess-the-avatar", 

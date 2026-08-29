@@ -42,11 +42,17 @@ class Client(commands.Bot):
         print(f"[Bot] 🤖 Logged as: {self.user.name}")
         synced = await self.tree.sync()
         print(f"[Commands] 🧮 {str(len(synced))} commands synced.")
+
+        guild_names = [guild.name for guild in self.guilds]
         print(f"[Bot] 🤖 Connected to {len(self.guilds)} servers:")
-        print(f"[Bot] 🤖 {[guild.name for guild in self.guilds]}")
+        for guild_name in guild_names:
+            print(f"[Bot] 🤖 {guild_name}")
 
         channel_to_send = self.get_channel(LOGS_CHANNEL_ID)
-        await channel_to_send.send(f"**{str(len(synced))}** commands synced. \n**{len(self.guilds)}** servers:\n\n```{[guild.name for guild in self.guilds]}```")
+        server_list = "\n".join(guild_names) if guild_names else "-"
+        await channel_to_send.send(
+            f"**{str(len(synced))}** commands synced. \n**{len(self.guilds)}** servers:\n```{server_list}```"
+        )
 
 client = Client()
 

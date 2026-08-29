@@ -12,7 +12,9 @@ class MemeGenerator(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         cog_dir = os.path.dirname(os.path.abspath(__file__))
-        self.font_path = os.path.join(os.path.dirname(cog_dir), "fonts", "impact.ttf")
+
+        root_dir = os.path.dirname(os.path.dirname(cog_dir))
+        self.font_path = os.path.join(root_dir, "fonts", "impact.ttf")
 
     def _generar_texto(self):
         modelo = getattr(self.bot, 'global_markov_model', None)
@@ -114,7 +116,7 @@ class MemeGenerator(commands.Cog):
         return output
 
     @app_commands.command(name="meme", description="Generates a bad random meme")
-    @app_commands.describe(image_content="Attach a random image.")
+    @app_commands.describe(image_content="Attach a random image")
     async def meme(self, interaction: discord.Interaction, image_content: discord.Attachment = None):
         await interaction.response.defer()
 

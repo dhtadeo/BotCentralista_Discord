@@ -4,27 +4,30 @@ from discord.ext import commands
 from wordcloud import WordCloud
 from io import BytesIO
 
-class WordCloudUser(commands.Cog):
+class WordCloudChannel(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @app_commands.command(
-        name="wordcloud-user", 
-        description="Generates a WordCloud from all messages sent by a specific user."
+    @app_commands.command(name="wordcloud-channel", description="Generates a WordCloud from a specified text channel")
+    @app_commands.describe(
+        channel="The text channel to read messages from"
     )
-    @app_commands.describe(username="The user to generate the WordCloud for")
-    async def wordcloud_user(self, interaction: discord.Interaction, username: discord.User):
+    async def wordcloud_channel(
+        self,
+        interaction: discord.Interaction,
+        channel: discord.TextChannel
+    ):
         await interaction.response.defer()
-
-        if username.bot:
-            return await interaction.followup.send("> ❌ You cannot generate a WordCloud for a bot account.")
 
         try:
             data = getattr(self.bot, 'global_chat_data', [])
             
             mensajes = []
             for msg in data:
-                if msg.get("user_id") == username.id:
+                if msg.get("channel_id") == channel.id:
+                    if msg.get("user_id") == self.bot.user.id:
+                        continue
+                    
                     texto_msg = msg.get("content", "").strip()
                     if texto_msg:
                         mensajes.append(texto_msg)
@@ -32,11 +35,11 @@ class WordCloudUser(commands.Cog):
             texto = "\n".join(mensajes)
             
         except Exception as e:
-            await interaction.followup.send(f"> ❌ Error reading messages for the user: `{e}`")
+            await interaction.followup.send(f"> ❌ Error reading messages from the channel: `{e}`")
             return
 
         if not texto.strip():
-            await interaction.followup.send(f"> ❌ Not enough text from {username.mention} to generate the WordCloud.")
+            await interaction.followup.send("> ❌ Not enough text in the channel to generate the WordCloud.")
             return
 
         try:
@@ -46,12 +49,11 @@ class WordCloudUser(commands.Cog):
             buffer.seek(0)
 
             await interaction.followup.send(
-                content=f"> WordCloud generated for user: {username.mention}",
-                file=discord.File(buffer, filename="wordcloud_user.png"),
-                allowed_mentions=discord.AllowedMentions.none()
+                content=f"> WordCloud generated from channel: {channel.mention}",
+                file=discord.File(buffer, filename="wordcloud_channel.png")
             )
         except Exception as e:
             await interaction.followup.send(f"> ❌ Error generating WordCloud: `{e}`")
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(WordCloudUser(bot))
+    await bot.add_cog(WordCloudChannel(bot))

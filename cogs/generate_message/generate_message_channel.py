@@ -9,7 +9,7 @@ class GenerateMessageChannel(commands.Cog):
 
     @app_commands.command(
         name="generate-message-channel", 
-        description="Generates a coherent message based on messages sent in the selected channel."
+        description="Generates a coherent message based on messages sent in the selected channel"
     )
     @app_commands.describe(channel="The text channel to fetch messages from")
     async def generate_message_channel(self, interaction: discord.Interaction, channel: discord.TextChannel):

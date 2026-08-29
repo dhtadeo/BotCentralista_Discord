@@ -6,7 +6,7 @@ class Ping_Command(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @app_commands.command(name='ping', description="Pongs back.")
+    @app_commands.command(name='ping', description="Pongs back")
     async def ping(self, interaction: discord.Interaction):
         await interaction.response.send_message(f"> **Pong!** \n-#  Latency: {round(self.bot.latency * 1000)}ms")
 

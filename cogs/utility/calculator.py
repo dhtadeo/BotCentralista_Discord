@@ -114,7 +114,7 @@ class Calculator_Command(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @app_commands.command(name="calculator", description="Sends an interactive calculator.")
+    @app_commands.command(name="calculator", description="(Coming soon) Sends an interactive calculator")
     async def calculator(self, interaction: discord.Interaction):
         # view = CalculatorButtons()
         # await interaction.response.send_message("# ```\n...\n```", view=view)

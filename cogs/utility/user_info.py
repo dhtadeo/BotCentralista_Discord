@@ -8,7 +8,7 @@ class UserInfo(commands.Cog):
 
     @app_commands.command(
         name="user", 
-        description="Shows a user's info."
+        description="Shows a user's info"
     )
     @app_commands.describe(
         username="The user you want to fetch data (leave it blank to see yours)"
