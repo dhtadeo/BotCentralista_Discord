@@ -1,6 +1,6 @@
 {
     "authorized_users": [
-	511265342253826060
+	    511265342253826060
     ],
     "logs_channel": [
         1174602784541245490
@@ -9,11 +9,7 @@
         "A new level has just been rated on Geometry Dash!!!",
         "There is a new Weekly demon on Geometry Dash!!!",
         "There is a new Daily level on Geometry Dash!!!",
-        "bc."
-    ],
-    "blacklist_channels": [
-	1531940569289330729,
-	1532305616754966691,
-	778428522539778048
+        "bc.",
+        "awe."
     ]
 }

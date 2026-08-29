@@ -15,7 +15,7 @@ class LogHistory(commands.Cog):
         root_dir = os.path.dirname(os.path.dirname(cog_dir)) 
         self.db_path = os.path.join(root_dir, "logs", "bc_logs.db")
 
-    @commands.command(name="loghistory", aliases=["lg"])
+    @commands.command(name="loghistory", aliases=["lh"])
     async def log_history(self, ctx, value: str = None):
         if ctx.author.id not in self.authorized_users:
             await ctx.message.delete()

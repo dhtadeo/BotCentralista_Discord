@@ -20,14 +20,11 @@ class WordCloudChannel(commands.Cog):
         await interaction.response.defer()
 
         try:
-            # Obtenemos los datos directamente del Cerebro en la RAM
             data = getattr(self.bot, 'global_chat_data', [])
             
             mensajes = []
             for msg in data:
-                # Filtramos para que coincida con el canal solicitado
                 if msg.get("channel_id") == channel.id:
-                    # Omitimos los mensajes generados por el propio bot para no ensuciar la nube
                     if msg.get("user_id") == self.bot.user.id:
                         continue
                     

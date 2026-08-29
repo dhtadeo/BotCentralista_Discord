@@ -32,7 +32,6 @@ class BotMentionReply(commands.Cog):
             data = getattr(self.bot, 'global_chat_data', [])
             oracion_final = None
 
-            # Entrena y genera base en lista de mensajes
             def intentar_generar(lista_mensajes):
                 texto = "\n".join(lista_mensajes)
                 if not texto.strip() or len(texto.splitlines()) < 5:
