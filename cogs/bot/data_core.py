@@ -22,17 +22,17 @@ class DataCore(commands.Cog):
         self.update_brain_loop.cancel()
 
     def _extract_text_for_markovify(self, data):
-        mensajes = []
+        messages = []
         for msg in data:
-            texto_msg = msg.get("content", "").strip()
-            adjuntos = msg.get("attachments", [])
+            text_msg = msg.get("content", "").strip()
+            attachments = msg.get("attachments", [])
             
-            if texto_msg or adjuntos:
-                linea = texto_msg
-                if adjuntos:
-                    linea += " " + " ".join(adjuntos)
-                mensajes.append(linea.strip())
-        return "\n".join(mensajes)
+            if text_msg or attachments:
+                line = text_msg
+                if attachments:
+                    line += " " + " ".join(attachments)
+                messages.append(line.strip())
+        return "\n".join(messages)
 
     @tasks.loop(minutes=30)
     async def update_brain_loop(self):
@@ -73,9 +73,9 @@ class DataCore(commands.Cog):
             if data:
                 self.bot.global_chat_data = data
                 
-                texto = self._extract_text_for_markovify(data)
-                if texto.strip() and len(texto.splitlines()) >= 5:
-                    self.bot.global_markov_model = markovify.NewlineText(texto, well_formed=False)
+                text = self._extract_text_for_markovify(data)
+                if text.strip() and len(text.splitlines()) >= 5:
+                    self.bot.global_markov_model = markovify.NewlineText(text, well_formed=False)
                     print(f"[Markovify] 🧠 The model is online. {len(data)} messages loaded from SQLite.")
                     
         except Exception as e:

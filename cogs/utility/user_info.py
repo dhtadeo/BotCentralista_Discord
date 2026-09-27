@@ -14,42 +14,42 @@ class UserInfo(commands.Cog):
         username="The user you want to fetch data (leave it blank to see yours)"
     )
     async def user_info(self, interaction: discord.Interaction, username: discord.Member = None):
-        miembro = username or interaction.user
+        member = username or interaction.user
 
         embed = discord.Embed(
-            title=f"{miembro.display_name}'s info", 
-            color=miembro.color
+            title=f"{member.display_name}'s info", 
+            color=member.color
         )
         
-        if miembro.display_avatar:
-            embed.set_thumbnail(url=miembro.display_avatar.url)
+        if member.display_avatar:
+            embed.set_thumbnail(url=member.display_avatar.url)
 
-        embed.add_field(name="👤 User", value=f"{miembro.name}", inline=True)
-        embed.add_field(name="🆔 ID", value=f"`{miembro.id}`", inline=True)
-        embed.add_field(name="🤖 Is Bot", value="Yes" if miembro.bot else "No", inline=True)
+        embed.add_field(name="👤 User", value=f"{member.name}", inline=True)
+        embed.add_field(name="🆔 ID", value=f"`{member.id}`", inline=True)
+        embed.add_field(name="🤖 Is Bot", value="Yes" if member.bot else "No", inline=True)
 
-        creacion_ts = int(miembro.created_at.timestamp())
+        creation_ts = int(member.created_at.timestamp())
         embed.add_field(
             name="📅 Account created", 
-            value=f"<t:{creacion_ts}:F>\n(<t:{creacion_ts}:R>)", 
+            value=f"<t:{creation_ts}:F>\n(<t:{creation_ts}:R>)", 
             inline=True
         )
 
-        if miembro.joined_at:
-            ingreso_ts = int(miembro.joined_at.timestamp())
+        if member.joined_at:
+            joining_ts = int(member.joined_at.timestamp())
             embed.add_field(
                 name="📥 Joined the server", 
-                value=f"<t:{ingreso_ts}:F>\n(<t:{ingreso_ts}:R>)", 
+                value=f"<t:{joining_ts}:F>\n(<t:{joining_ts}:R>)", 
                 inline=True
             )
 
-        roles = [rol.mention for rol in reversed(miembro.roles) if rol.name != "@everyone"]
+        roles = [rol.mention for rol in reversed(member.roles) if rol.name != "@everyone"]
         
         if roles:
-            roles_texto = " ".join(roles)
-            if len(roles_texto) > 1024:
-                roles_texto = roles_texto[:1020] + "..."
-            embed.add_field(name=f"🎭 Roles ({len(roles)})", value=roles_texto, inline=False)
+            roles_text = " ".join(roles)
+            if len(roles_text) > 1024:
+                roles_text = roles_text[:1020] + "..."
+            embed.add_field(name=f"🎭 Roles ({len(roles)})", value=roles_text, inline=False)
         else:
             embed.add_field(name="🎭 Roles (0)", value="*No assigned roles*", inline=False)
 

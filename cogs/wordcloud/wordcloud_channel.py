@@ -22,28 +22,28 @@ class WordCloudChannel(commands.Cog):
         try:
             data = getattr(self.bot, 'global_chat_data', [])
             
-            mensajes = []
+            messages = []
             for msg in data:
                 if msg.get("channel_id") == channel.id:
                     if msg.get("user_id") == self.bot.user.id:
                         continue
                     
-                    texto_msg = msg.get("content", "").strip()
-                    if texto_msg:
-                        mensajes.append(texto_msg)
+                    text_msg = msg.get("content", "").strip()
+                    if text_msg:
+                        messages.append(text_msg)
                         
-            texto = "\n".join(mensajes)
+            text = "\n".join(messages)
             
         except Exception as e:
             await interaction.followup.send(f"> ❌ Error reading messages from the channel: `{e}`")
             return
 
-        if not texto.strip():
+        if not text.strip():
             await interaction.followup.send("> ❌ Not enough text in the channel to generate the WordCloud.")
             return
 
         try:
-            wc = WordCloud(width=800, height=400, background_color="white").generate(texto)
+            wc = WordCloud(width=800, height=400, background_color="white").generate(text)
             buffer = BytesIO()
             wc.to_image().save(buffer, format="PNG")
             buffer.seek(0)

@@ -30,60 +30,60 @@ class BotMentionReply(commands.Cog):
 
         async with message.channel.typing():
             data = getattr(self.bot, 'global_chat_data', [])
-            oracion_final = None
+            final_sentence = None
 
-            def intentar_generar(lista_mensajes):
-                texto = "\n".join(lista_mensajes)
-                if not texto.strip() or len(texto.splitlines()) < 5:
+            def try_generate(list_of_messages):
+                text = "\n".join(list_of_messages)
+                if not text.strip() or len(text.splitlines()) < 5:
                     return None
                 try:
-                    modelo = markovify.NewlineText(texto, well_formed=False)
+                    model = markovify.NewlineText(text, well_formed=False)
                     for _ in range(50):
-                        oracion = modelo.make_sentence()
-                        if oracion: return oracion
+                        sentence = model.make_sentence()
+                        if sentence: return sentence
                 except:
                     pass
                 return None
 
             if data:
-                canal_msgs = []
+                channel_msgs = []
                 server_msgs = []
 
                 for msg in data:
                     if message.guild and msg.get("server_id") == message.guild.id:
                         # From this server
-                        texto_msg = msg.get("content", "").strip()
-                        adjuntos = msg.get("attachments", [])
-                        if texto_msg or adjuntos:
-                            linea = texto_msg
-                            if adjuntos: linea += " " + " ".join(adjuntos)
-                            linea = linea.strip()
+                        text_msg = msg.get("content", "").strip()
+                        attachments = msg.get("attachments", [])
+                        if text_msg or attachments:
+                            line = text_msg
+                            if attachments: line += " " + " ".join(attachments)
+                            line = line.strip()
                             
-                            server_msgs.append(linea)
+                            server_msgs.append(line)
                             # From this channel
                             if msg.get("channel_id") == message.channel.id:
-                                canal_msgs.append(linea)
+                                channel_msgs.append(line)
                     
                     elif not message.guild and msg.get("channel_id") == message.channel.id:
                         # If DM
-                        texto_msg = msg.get("content", "").strip()
-                        adjuntos = msg.get("attachments", [])
-                        if texto_msg or adjuntos:
-                            linea = texto_msg
-                            if adjuntos: linea += " " + " ".join(adjuntos)
-                            canal_msgs.append(linea.strip())
+                        text_msg = msg.get("content", "").strip()
+                        attachments = msg.get("attachments", [])
+                        if text_msg or attachments:
+                            line = text_msg
+                            if attachments: line += " " + " ".join(attachments)
+                            channel_msgs.append(line.strip())
 
                 # LEVEL 1: Channel messages
-                oracion_final = intentar_generar(canal_msgs)
+                final_sentence = try_generate(channel_msgs)
 
                 # LEVEL 2: Server messages
-                if not oracion_final and message.guild:
-                    oracion_final = intentar_generar(server_msgs)
+                if not final_sentence and message.guild:
+                    final_sentence = try_generate(server_msgs)
             
-            if oracion_final:
+            if final_sentence:
                 try:
                     await message.reply(
-                        oracion_final, 
+                        final_sentence, 
                         allowed_mentions=discord.AllowedMentions.none()
                     )
                 except Exception as e:

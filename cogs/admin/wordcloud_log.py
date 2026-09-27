@@ -20,16 +20,16 @@ class WordCloudLog(commands.Cog):
 
         try:
             data = getattr(self.bot, 'global_chat_data', [])
-            mensajes = [m.get("content", "").strip() for m in data if m.get("content")]
-            texto = "\n".join(mensajes)
+            messages = [m.get("content", "").strip() for m in data if m.get("content")]
+            text = "\n".join(messages)
         except Exception as e:
             return await msg.edit(content=f"> ❌ Error reading log data: `{e}`")
 
-        if not texto.strip():
+        if not text.strip():
             return await msg.edit(content="> ❌ There's not enough text in the logs to generate the WordCloud.")
 
         try:
-            wc = WordCloud(width=800, height=400, background_color="white").generate(texto)
+            wc = WordCloud(width=800, height=400, background_color="white").generate(text)
             buffer = BytesIO()
             wc.to_image().save(buffer, format="PNG")
             buffer.seek(0)

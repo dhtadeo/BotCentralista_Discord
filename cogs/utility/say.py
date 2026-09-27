@@ -30,15 +30,14 @@ class Say_Command(commands.Cog):
         kwargs['allowed_mentions'] = discord.AllowedMentions.none()
         
         view = discord.ui.View()
-        boton_autor = discord.ui.Button(
+        button_autor = discord.ui.Button(
             label=f"{interaction.user.display_name}",
             style=discord.ButtonStyle.secondary,
             disabled=True
         )
-        view.add_item(boton_autor)
+        view.add_item(button_autor)
         kwargs['view'] = view
 
-        # Envío del mensaje
         await interaction.channel.send(**kwargs)
 
 async def setup(bot: commands.Bot):

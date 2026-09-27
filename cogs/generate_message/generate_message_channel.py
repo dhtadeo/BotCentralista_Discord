@@ -21,33 +21,33 @@ class GenerateMessageChannel(commands.Cog):
             return await interaction.followup.send("> ⚠️ Failed to generate a message.")
 
         try:
-            mensajes = []
+            messages = []
             for msg in data:
                 if msg.get("channel_id") == channel.id:
-                    texto_msg = msg.get("content", "").strip()
-                    adjuntos = msg.get("attachments", [])
+                    text_msg = msg.get("content", "").strip()
+                    attachments = msg.get("attachments", [])
                     
-                    if texto_msg or adjuntos:
-                        linea = texto_msg
-                        if adjuntos:
-                            linea += " " + " ".join(adjuntos)
-                        mensajes.append(linea.strip())
+                    if text_msg or attachments:
+                        linea = text_msg
+                        if attachments:
+                            linea += " " + " ".join(attachments)
+                        messages.append(linea.strip())
                         
-            texto = "\n".join(mensajes)
+            text = "\n".join(messages)
                 
-            if not texto.strip() or len(texto.splitlines()) < 5:
+            if not text.strip() or len(text.splitlines()) < 5:
                 return await interaction.followup.send(f"> ❌ Not enough messages stored for {channel.mention} yet. Lock in! ")
 
-            modelo = markovify.NewlineText(texto, well_formed=False)
+            model = markovify.NewlineText(text, well_formed=False)
             
-            oracion = None
+            sentence = None
             for _ in range(50):
-                oracion = modelo.make_sentence()
-                if oracion: break
+                sentence = model.make_sentence()
+                if sentence: break
 
-            if oracion:
+            if sentence:
                 await interaction.followup.send(
-                    oracion,
+                    sentence,
                     allowed_mentions=discord.AllowedMentions.none()
                 )
             else:

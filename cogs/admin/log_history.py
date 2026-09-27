@@ -77,23 +77,23 @@ class LogHistory(commands.Cog):
 
                 selected_value, content_raw, attachments_raw, channel_id = row[0], row[1], row[2], row[3]
 
-            attachments_lista = []
+            attachments_list = []
             if attachments_raw:
                 try:
-                    attachments_lista = json.loads(attachments_raw)
+                    attachments_list = json.loads(attachments_raw)
                 except Exception:
-                    attachments_lista = []
+                    attachments_list = []
                     
             content_text = content_raw.strip() if content_raw else ""
 
-            if content_text and attachments_lista:
-                formato = f"{content_text}\n " + "\n ".join(attachments_lista)
+            if content_text and attachments_list:
+                formats = f"{content_text}\n " + "\n ".join(attachments_list)
             elif content_text:
-                formato = content_text
-            elif attachments_lista:
-                formato = "\n ".join(attachments_lista)
+                formats = content_text
+            elif attachments_list:
+                formats = "\n ".join(attachments_list)
             else:
-                formato = "*Empty*"
+                formats = "*Empty*"
             
             view = discord.ui.View()
             boton_id = discord.ui.Button(
@@ -104,7 +104,7 @@ class LogHistory(commands.Cog):
             view.add_item(boton_id)
             
             await ctx.send(
-                formato, 
+                formats, 
                 view=view, 
                 allowed_mentions=discord.AllowedMentions.none()
             )

@@ -18,14 +18,14 @@ class GenerateMessageLog(commands.Cog):
             return await ctx.send("> ⚠️ Interaction failed, please try again in a few moments.")
 
         try:
-            oracion = None
+            sentence = None
             for _ in range(50):
-                oracion = self.bot.global_markov_model.make_sentence()
-                if oracion: break
+                sentence = self.bot.global_markov_model.make_sentence()
+                if sentence: break
 
-            if oracion:
+            if sentence:
                 await ctx.send(
-                    oracion, 
+                    sentence, 
                     allowed_mentions=discord.AllowedMentions.none()
                 )
             else:
