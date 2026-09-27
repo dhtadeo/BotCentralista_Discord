@@ -5,6 +5,110 @@ import json
 import sqlite3
 from cogs.admin._admin_config import ADMIN_PREFIX, get_authorized_users, UNAUTHORIZED_MESSAGE
 
+def format_log_message(content_raw, attachments_raw):
+    attachments_list = []
+    if attachments_raw:
+        try:
+            attachments_list = json.loads(attachments_raw)
+        except Exception:
+            attachments_list = []
+
+    content_text = content_raw.strip() if content_raw else ""
+
+    if content_text and attachments_list:
+        return f"{content_text}\n " + "\n ".join(attachments_list)
+    elif content_text:
+        return content_text
+    elif attachments_list:
+        return "\n ".join(attachments_list)
+    else:
+        return "*Empty*"
+
+
+def fetch_random_log(db_path):
+    conn = sqlite3.connect(db_path, timeout=5.0)
+    cursor = conn.cursor()
+    query = """
+        WITH numbered AS (
+            SELECT ROW_NUMBER() OVER (ORDER BY rowid) AS row_num, content, attachments, channel_id 
+            FROM messages
+        ) 
+        SELECT row_num, content, attachments, channel_id 
+        FROM numbered 
+        ORDER BY RANDOM() 
+        LIMIT 1
+    """
+    cursor.execute(query)
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+class ShuffleView(discord.ui.View):
+    def __init__(self, author_id: int, db_path: str, initial_id: int, include_shuffle: bool = False):
+        super().__init__(timeout=30.0 if include_shuffle else None)
+        self.author_id = author_id
+        self.db_path = db_path
+        self.message = None
+
+        self.boton_id = discord.ui.Button(
+            label=f"ID: {initial_id}",
+            style=discord.ButtonStyle.secondary,
+            disabled=True
+        )
+        self.add_item(self.boton_id)
+
+        self.boton_shuffle = None
+        if include_shuffle:
+            self.boton_shuffle = discord.ui.Button(
+                label="Shuffle",
+                style=discord.ButtonStyle.success
+            )
+            self.boton_shuffle.callback = self.shuffle_callback
+            self.add_item(self.boton_shuffle)
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.author_id:
+            await interaction.response.send_message(
+                "> ❌ Only the user who summoned this command can use this button.",
+                ephemeral=True
+            )
+            return False
+        return True
+
+    async def shuffle_callback(self, interaction: discord.Interaction):
+        try:
+            row = fetch_random_log(self.db_path)
+            if not row:
+                return await interaction.response.send_message(
+                    "> ⚠️ No available messages to display...",
+                    ephemeral=True
+                )
+
+            selected_value, content_raw, attachments_raw, _ = row[0], row[1], row[2], row[3]
+            formats = format_log_message(content_raw, attachments_raw)
+
+            self.boton_id.label = f"ID: {selected_value}"
+
+            await interaction.response.edit_message(
+                content=formats,
+                view=self,
+                allowed_mentions=discord.AllowedMentions.none()
+            )
+        except Exception as e:
+            await interaction.response.send_message(
+                f"> ❌ Error reading log database: `{e}`",
+                ephemeral=True
+            )
+
+    async def on_timeout(self):
+        if self.boton_shuffle is not None:
+            self.boton_shuffle.disabled = True
+            if self.message:
+                try:
+                    await self.message.edit(view=self)
+                except discord.HTTPException:
+                    pass
+
 class LogHistory(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -58,56 +162,29 @@ class LogHistory(commands.Cog):
                 content_raw, attachments_raw, channel_id = row[0], row[1], row[2]
                 selected_value = value_int
             else:
-                query = """
-                    WITH numbered AS (
-                        SELECT ROW_NUMBER() OVER (ORDER BY rowid) AS row_num, content, attachments, channel_id 
-                        FROM messages
-                    ) 
-                    SELECT row_num, content, attachments, channel_id 
-                    FROM numbered 
-                    ORDER BY RANDOM() 
-                    LIMIT 1
-                """
-                cursor.execute(query)
-                row = cursor.fetchone()
                 conn.close()
+                row = fetch_random_log(self.db_path)
 
                 if not row:
                     return await ctx.send("> ⚠️ No available messages to display...")
 
                 selected_value, content_raw, attachments_raw, channel_id = row[0], row[1], row[2], row[3]
 
-            attachments_list = []
-            if attachments_raw:
-                try:
-                    attachments_list = json.loads(attachments_raw)
-                except Exception:
-                    attachments_list = []
-                    
-            content_text = content_raw.strip() if content_raw else ""
-
-            if content_text and attachments_list:
-                formats = f"{content_text}\n " + "\n ".join(attachments_list)
-            elif content_text:
-                formats = content_text
-            elif attachments_list:
-                formats = "\n ".join(attachments_list)
-            else:
-                formats = "*Empty*"
+            formats = format_log_message(content_raw, attachments_raw)
             
-            view = discord.ui.View()
-            boton_id = discord.ui.Button(
-                label=f"ID: {selected_value}", 
-                style=discord.ButtonStyle.secondary,
-                disabled=True
+            view = ShuffleView(
+                author_id=ctx.author.id,
+                db_path=self.db_path,
+                initial_id=selected_value,
+                include_shuffle=(value_int is None)
             )
-            view.add_item(boton_id)
             
-            await ctx.send(
+            sent_message = await ctx.send(
                 formats, 
                 view=view, 
                 allowed_mentions=discord.AllowedMentions.none()
             )
+            view.message = sent_message
         except Exception as e:
             return await ctx.send(f"> ❌ Error reading log database: `{e}`")
 
