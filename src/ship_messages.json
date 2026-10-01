@@ -1,0 +1,32 @@
+{
+    "0-25": [
+        "0 - 25 Placeholder 1",
+        "0 - 25 Placeholder 2",
+        "0 - 25 Placeholder 3"
+    ],
+    "26-50": [
+        "26 - 50 Placeholder 1",
+        "26 - 50 Placeholder 2",
+        "26 - 50 Placeholder 3"
+    ],
+    "51-75": [
+        "51 - 75 Placeholder 1",
+        "51 - 75 Placeholder 2",
+        "51 - 75 Placeholder 3"
+    ],
+    "76-99": [
+        "76 - 99 Placeholder 1",
+        "76 - 99 Placeholder 2",
+        "76 - 99 Placeholder 3"
+    ],
+    "100": [
+        "100 Placeholder 1",
+        "100 Placeholder 2",
+        "100 Placeholder 3"
+    ],
+    "self": [
+        "self Placeholder 1",
+        "self Placeholder 2",
+        "self Placeholder 3"
+    ]
+}
